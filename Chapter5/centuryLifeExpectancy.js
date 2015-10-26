@@ -1,32 +1,30 @@
 var ancestry = require('./ancestry');
 
-function overNinty(p) {
-  if (p.died - p.born > 90) {
-    return p;
-  }
-}
-var peopleOverNinty = ancestry.filter(overNinty);
-
-function averageByCentury(olderPeople) {
-  var centuries = olderPeople.map(function (person) {
-    return Math.ceil(person.died / 100);
-  });
-  return centuries;
+function average(array) {
+  function plus(a, b) { return a + b;}
+  return array.reduce(plus) / array.length;
 }
 
-var centuries = averageByCentury(peopleOverNinty);
-
-function groupBy(centuries) {
-  var groupByCenturies = centuries.reduce(function (prev, next) {
-    if (typeof prev[next] == 'undefined') {
-      prev[next] = 1;
+function groupBy(array, groupOf) {
+  var groups = {};
+  array.forEach(function (element) {
+    var groupName = groupOf(element);
+    if (groupName in groups) {
+      groups[groupName].push(element);
     } else {
-      prev[next] += 1;
+      groups[groupName] = new Array(element);
     }
-
-    return prev;
-  }, {});
-  return groupByCenturies;
+  });
+  return groups;
 }
 
-console.log(groupBy(centuries));
+var byCentury = groupBy(ancestry, function (person) {
+  return Math.ceil(person.died / 100);
+});
+
+for (var century in byCentury) {
+  var centuries = byCentury[century].map(function (person) {
+    return person.died - person.born;
+  });
+  console.log(century + ': ' + average(centuries));
+}
